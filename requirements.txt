@@ -2,8 +2,6 @@ pandas
 numpy
 nltk
 scikit-learn
-catboost
-xgboost
-dill
+python-dotenv
 flask
-
+requests

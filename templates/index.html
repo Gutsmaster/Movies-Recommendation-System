@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineMatch — Find Your Next Film</title>
+
+  <!-- Fonts: Bebas Neue for display, Inter for body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <style>
+    /* ── Reset & Tokens ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #13131a;
+      --border:    #1f1f2e;
+      --gold:      #e8b84b;
+      --gold-dim:  #a07d28;
+      --text:      #e8e8f0;
+      --muted:     #6b6b80;
+      --danger:    #e05c5c;
+      --radius:    14px;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body:    'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Film-strip top border (signature element) ──────────────────── */
+    body::before {
+      content: '';
+      display: block;
+      height: 6px;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--gold) 0px, var(--gold) 18px,
+        transparent 18px, transparent 28px
+      );
+    }
+
+    /* ── Navbar ─────────────────────────────────────────────────────── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10, 10, 15, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      letter-spacing: 0.06em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Hero ───────────────────────────────────────────────────────── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 1.5rem 4rem;
+      position: relative;
+    }
+
+    /* Radial glow behind hero */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, rgba(232,184,75,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 10vw, 7rem);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title em {
+      font-style: normal;
+      color: var(--gold);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 420px;
+      line-height: 1.65;
+      margin-bottom: 3rem;
+      font-weight: 300;
+    }
+
+    /* ── Search box ─────────────────────────────────────────────────── */
+    .search-wrap {
+      width: 100%;
+      max-width: 580px;
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 1rem;
+    }
+
+    #movie-input {
+      width: 100%;
+      padding: 1rem 1.1rem 1rem 2.8rem;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 400;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #movie-input::placeholder { color: var(--muted); }
+
+    #movie-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(232,184,75,0.12);
+    }
+
+    /* Autocomplete dropdown */
+    #suggestions {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0; right: 0;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      z-index: 200;
+      display: none;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+
+    #suggestions.open { display: block; }
+
+    .suggestion-item {
+      padding: 0.75rem 1.1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text);
+      transition: background 0.15s;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover,
+    .suggestion-item.active { background: rgba(232,184,75,0.08); color: var(--gold); }
+
+    /* Search button */
+    .search-btn {
+      margin-top: 1rem;
+      padding: 0.85rem 2.5rem;
+      background: var(--gold);
+      color: #0a0a0f;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .search-btn:hover {
+      background: #f0c860;
+      transform: translateY(-1px);
+    }
+
+    .search-btn:active { transform: translateY(0); }
+
+    /* Error message */
+    .error-msg {
+      margin-top: 1rem;
+      color: var(--danger);
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    /* ── Popular picks strip ────────────────────────────────────────── */
+    .popular {
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .popular-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .pill {
+      padding: 0.3rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      background: none;
+      font-family: var(--font-body);
+    }
+
+    .pill:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── How it works ───────────────────────────────────────────────── */
+    .how {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      padding: 4rem 2rem 5rem;
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+      flex-wrap: wrap;
+    }
+
+    .how-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.6rem;
+      max-width: 180px;
+    }
+
+    .how-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .how-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .how-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--gold-dim); text-decoration: none; }
+    footer a:hover { color: var(--gold); }
+
+    /* ── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      nav { padding: 1rem 1.2rem; }
+      .nav-links { display: none; }
+      .hero { padding: 4rem 1.2rem 3rem; }
+      .how { gap: 2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="/" class="nav-logo">Cine<span>Match</span></a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="https://github.com/yourusername/Movies-Recommendation-System" target="_blank">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <p class="hero-eyebrow">AI-Powered · 5,000+ Films</p>
+
+    <h1 class="hero-title">
+      Find your<br><em>next film</em>
+    </h1>
+
+    <p class="hero-sub">
+      Type any movie you love. Our content-based model finds five films that share its soul — genre, cast, themes, and more.
+    </p>
+
+    <!-- Search form -->
+    <form class="search-wrap" action="/recommend" method="GET" autocomplete="off">
+      <span class="search-icon">🎬</span>
+      <input
+        type="text"
+        id="movie-input"
+        name="movie"
+        placeholder="e.g. The Dark Knight, Avatar, Inception…"
+        value="{{ request.args.get('movie', '') }}"
+        required
+      />
+      <div id="suggestions"></div>
+
+      {% if error %}
+        <p class="error-msg">{{ error }}</p>
+      {% endif %}
+
+      <button type="submit" class="search-btn">Find Similar Films</button>
+    </form>
+
+    <!-- Quick-pick pills -->
+    <div class="popular">
+      <span class="popular-label">Try:</span>
+      {% for film in ['Inception', 'The Dark Knight', 'Avatar', 'Interstellar', 'The Avengers'] %}
+        <button class="pill" type="button" onclick="setMovie('{{ film }}')">{{ film }}</button>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how">
+    <div class="how-step">
+      <div class="how-icon">🎥</div>
+      <div class="how-title">Pick a film</div>
+      <div class="how-desc">Search any title from our dataset of 5,000+ movies</div>
+    </div>
+    <div class="how-step">
+      <div class="how-icon">🤖</div>
+      <div class="how-title">AI matches</div>
+      <div class="how-desc">Cosine similarity on genres, cast, keywords & overview</div>
+    </div>
+    <div class="how-step">
+      <div class="how-icon">🍿</div>
+      <div class="how-title">Watch</div>
+      <div class="how-desc">Get 5 handpicked films that share the same DNA</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    Built with Flask · Powered by <a href="https://www.themoviedb.org" target="_blank">TMDB</a> ·
+    <a href="https://github.com/yourusername/Movies-Recommendation-System" target="_blank">View on GitHub</a>
+  </footer>
+
+  <!-- Autocomplete JS -->
+  <script>
+    const input = document.getElementById('movie-input');
+    const box   = document.getElementById('suggestions');
+    let activeIdx = -1;
+    let debounceTimer;
+
+    input.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = input.value.trim();
+      if (q.length < 2) { close(); return; }
+
+      debounceTimer = setTimeout(async () => {
+        const res  = await fetch(`/search-suggest?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        render(data.suggestions || []);
+      }, 200);
+    });
+
+    function render(items) {
+      if (!items.length) { close(); return; }
+      box.innerHTML = items
+        .map((t, i) => `<div class="suggestion-item" data-idx="${i}" onclick="pick('${t.replace(/'/g,"\\'")}'">${t}</div>`)
+        .join('');
+      box.classList.add('open');
+      activeIdx = -1;
+    }
+
+    function close() {
+      box.classList.remove('open');
+      box.innerHTML = '';
+      activeIdx = -1;
+    }
+
+    function pick(title) {
+      input.value = title;
+      close();
+      input.closest('form').submit();
+    }
+
+    // Keyboard navigation
+    input.addEventListener('keydown', e => {
+      const items = box.querySelectorAll('.suggestion-item');
+      if (!items.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIdx = Math.min(activeIdx + 1, items.length - 1);
+        highlight(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIdx = Math.max(activeIdx - 1, 0);
+        highlight(items);
+      } else if (e.key === 'Enter' && activeIdx >= 0) {
+        e.preventDefault();
+        pick(items[activeIdx].textContent);
+      } else if (e.key === 'Escape') {
+        close();
+      }
+    });
+
+    function highlight(items) {
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+    }
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-wrap')) close();
+    });
+
+    // Quick-pick pills
+    function setMovie(title) {
+      input.value = title;
+      input.closest('form').submit();
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineMatch — Finding matches for {{ query }}…</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}" />
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="/" class="nav-logo">Cine<span>Match</span></a>
+  </nav>
+
+  <!-- Cinematic full-screen loader -->
+  <div id="cinematic-loader">
+    <div class="grain"></div>
+
+    <div class="reel-wrap">
+      <svg class="reel" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#1f1f2e" stroke-width="6"/>
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#e8b84b" stroke-width="6"
+          stroke-dasharray="60 220" stroke-linecap="round" class="reel-arc"/>
+        <circle cx="50" cy="50" r="10" fill="#e8b84b" opacity="0.15"/>
+        <circle cx="50" cy="50" r="4" fill="#e8b84b"/>
+        <line x1="50" y1="20" x2="50" y2="36" stroke="#e8b84b" stroke-width="2" opacity="0.4"/>
+        <line x1="50" y1="64" x2="50" y2="80" stroke="#e8b84b" stroke-width="2" opacity="0.4"/>
+        <line x1="20" y1="50" x2="36" y2="50" stroke="#e8b84b" stroke-width="2" opacity="0.4"/>
+        <line x1="64" y1="50" x2="80" y2="50" stroke="#e8b84b" stroke-width="2" opacity="0.4"/>
+      </svg>
+    </div>
+
+    <p class="loader-searching">Finding films like <em>{{ query }}</em></p>
+
+    <div class="fun-text-wrap">
+      <p class="fun-text" id="fun-text">🍿 Grab your popcorn…</p>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Results (hidden until data arrives) -->
+  <div id="results-hero" class="results-hero hidden">
+    <p class="eyebrow">Because you liked</p>
+    <h1 class="results-title"><em>{{ query }}</em></h1>
+    <p class="results-sub">5 films that share its DNA — genre, cast, themes &amp; more.</p>
+  </div>
+
+  <div id="sim-section" class="sim-bar-wrap hidden">
+    <p class="sim-bar-label">Match strength</p>
+    <div class="sim-bars" id="sim-bars"></div>
+  </div>
+
+  <div class="cards-grid hidden" id="results-grid"></div>
+
+  <div id="error-state" class="error-state hidden">
+    <p>Something went wrong. <a href="/">Try again</a></p>
+  </div>
+
+  <div class="search-again-section hidden" id="search-again">
+    <p class="search-again-title">Search another film</p>
+    <form class="search-box-wrap" action="/recommend" method="GET">
+      <input type="text" name="movie" placeholder="e.g. Inception, Avatar…" autocomplete="off" />
+      <button type="submit">Find Films</button>
+    </form>
+    <div class="quick-picks">
+      <span class="quick-label">Try:</span>
+      {% for film in ['Inception', 'The Dark Knight', 'Avatar', 'Interstellar', 'The Avengers'] %}
+        <button class="pill" type="button"
+          onclick="window.location='/recommend?movie={{ film }}'">{{ film }}</button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <footer>
+    Built with Flask · Powered by
+    <a href="https://www.themoviedb.org" target="_blank">TMDB</a> ·
+    <a href="https://github.com/yourusername/Movies-Recommendation-System" target="_blank">GitHub</a>
+  </footer>
+
+  <script>
+    // Pass Jinja variable to JS safely
+    window.CINEMATCH_QUERY = {{ query | tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='js/loading.js') }}"></script>
+
+</body>
+</html>

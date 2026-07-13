@@ -1,0 +1,91 @@
+/* ═══════════════════════════════════════════════════════════════
+   CineMatch — Global Styles & Design Tokens
+   Shared by index.html and loading.html
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Design tokens ──────────────────────────────────────────── */
+:root {
+  --bg:           #0a0a0f;
+  --surface:      #13131a;
+  --surface2:     #1a1a24;
+  --border:       #1f1f2e;
+  --gold:         #e8b84b;
+  --gold-dim:     #a07d28;
+  --text:         #e8e8f0;
+  --muted:        #6b6b80;
+  --danger:       #e05c5c;
+  --radius:       14px;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'Inter', sans-serif;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+  animation: pageFadeIn 0.3s ease forwards;
+}
+
+/* Film-strip top border */
+body::before {
+  content: '';
+  display: block;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--gold)       0px,  var(--gold) 18px,
+    transparent      18px,  transparent 28px
+  );
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ── Selection ──────────────────────────────────────────────── */
+::selection {
+  background: rgba(232, 184, 75, 0.25);
+  color: var(--text);
+}
+
+/* ── Focus ring ─────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Images ─────────────────────────────────────────────────── */
+img {
+  image-rendering: auto;
+}
+
+/* ── Reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:       0.01ms !important;
+    animation-iteration-count: 1     !important;
+    transition-duration:      0.01ms !important;
+  }
+}
